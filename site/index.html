@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inselwinter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Minimal, hell, Papierkarte. Eine Spalte: Kopfzeile, Intro, Bild, Karte, Beiträge. */
+:root{
+  --paper:#f6f5f1;
+  --ink:#141414;
+  --mute:#85827a;
+  --rule:#e1ded6;
+  --sea:#e6ebea;
+  --land:#fbfaf7;
+  --coast:#c9c5bb;
+  --pin:#d9481c;
+  --sans:"Geist", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono:"Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:400 16px/1.7 var(--sans);-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+.wrap{max-width:1040px;margin:0 auto;padding:0 clamp(16px,4vw,32px)}
+.mono{font-family:var(--mono);font-size:12.5px;letter-spacing:.01em;color:var(--mute)}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 0;border-bottom:1px solid var(--rule)}
+.top strong{font-weight:600;font-size:15px}
+
+.intro{padding:clamp(48px,9vw,112px) 0 clamp(28px,4vw,40px);display:grid;gap:20px}
+.intro h1{font-weight:500;font-size:clamp(34px,5.4vw,60px);line-height:1.05;letter-spacing:-.025em;margin:0;max-width:16ch;text-wrap:balance}
+.intro .status{display:flex;gap:10px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pin);flex:none}
+
+.hero img{width:100%;aspect-ratio:16/9;object-fit:cover;object-position:center 46%}
+
+section{padding:clamp(56px,8vw,96px) 0 0}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+h2.sec{font-size:15px;font-weight:600;margin:0}
+.ctrl{display:flex;gap:18px;flex-wrap:wrap}
+.ctrl button{background:none;border:0;padding:2px 0;cursor:pointer;font-size:14px;color:var(--mute);border-bottom:1px solid transparent}
+.ctrl button:hover{color:var(--ink)}
+.ctrl button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+
+.map{position:relative;background:var(--sea);border:1px solid var(--rule);aspect-ratio:16/9;overflow:hidden}
+.map svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.land{fill:var(--land);stroke:var(--coast);stroke-width:.6;vector-effect:non-scaling-stroke}
+.grat{fill:none;stroke:#dfe3e1;stroke-width:.6}
+.leg{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.leg.future{stroke:#a9a59c;stroke-width:1.2;stroke-dasharray:2 4}
+.leg.past{stroke:var(--ink);stroke-width:1.6}
+.leg.past.ferry{stroke-dasharray:6 4}
+.trail{fill:none;stroke:var(--pin);stroke-width:2;stroke-linecap:round}
+.stop{fill:var(--paper);stroke:var(--ink);stroke-width:1.2}
+.stop.future{stroke:#a9a59c}
+.lbl{font:500 12px var(--sans);fill:var(--ink);paint-order:stroke;stroke:var(--land);stroke-width:3px;stroke-linejoin:round}
+.lbl tspan.d{font:400 11px var(--mono);fill:var(--mute)}
+.lbl.sea{stroke:var(--sea)}
+.pin{fill:var(--pin)}
+.pulse{fill:none;stroke:var(--pin);stroke-width:1.5;transform-box:fill-box;transform-origin:center;animation:pulse 2.2s ease-out infinite}
+@keyframes pulse{from{transform:scale(1);opacity:.9}to{transform:scale(4.5);opacity:0}}
+.ocean{font:400 11px var(--mono);fill:#9fa9a7;letter-spacing:.24em}
+.ring{fill:none;stroke-linejoin:round;stroke-linecap:round}
+.ring.l{stroke:#d3dad8}
+.ring.s{stroke:var(--sea)}
+.isle2{font:400 10px var(--mono);fill:#a7aaa3;letter-spacing:.14em}
+.scale line{stroke:var(--ink);stroke-width:1}
+.scale text,.north{font:400 10.5px var(--mono);fill:var(--ink)}
+.rep{cursor:pointer}
+.rep circle{fill:var(--ink);stroke:var(--land);stroke-width:2;transition:r .15s}
+.rep text{font:500 10px var(--mono);fill:var(--paper);pointer-events:none}
+.rep:hover circle,.rep:focus-visible circle{fill:var(--pin)}
+.rep:focus{outline:none}
+.post.flash h3{animation:flash 1.6s ease-out}
+@keyframes flash{0%{color:var(--pin)}100%{color:var(--ink)}}
+.mapfoot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:12px}
+
+.feed{display:grid;gap:clamp(72px,10vw,120px);padding-bottom:clamp(72px,10vw,120px)}
+.post{scroll-margin-top:24px;display:grid;gap:18px}
+.post .meta{display:flex;gap:14px;flex-wrap:wrap;align-items:baseline}
+.post h3{font-weight:500;font-size:clamp(26px,3.4vw,36px);line-height:1.15;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.post .text p{max-width:64ch;margin:0 0 1em}
+.post .text p:last-child{margin:0}
+.post .text h4{font-size:17px;font-weight:600;margin:2.2em 0 .5em;letter-spacing:-.005em}
+.post .text h4:first-child{margin-top:0}
+.post .text .gallery{margin:1.6em 0}
+.gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gallery button{all:unset;cursor:zoom-in;overflow:hidden;background:var(--rule)}
+.gallery button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.gallery img{width:100%;height:100%;object-fit:cover;aspect-ratio:4/5}
+.gallery.lead button:first-child,.gallery.odd button:last-child{grid-column:1 / -1}
+.gallery.lead button:first-child img,.gallery.odd button:last-child img{aspect-ratio:3/2}
+.gallery.lead.odd button:last-child:not(:first-child){grid-column:auto}
+.gallery.lead.odd button:last-child:not(:first-child) img{aspect-ratio:4/5}
+.gallery.n1 img{aspect-ratio:auto;height:auto}
+.gallery.lead:not(.odd) button:last-child:not(:first-child){grid-column:1 / -1}
+.gallery.lead:not(.odd) button:last-child:not(:first-child) img{aspect-ratio:3/2}
+.copy{justify-self:start;background:none;border:0;padding:0;cursor:pointer;font-size:14px;color:var(--mute);text-decoration:underline;text-underline-offset:3px}
+.copy:hover{color:var(--ink)}
+
+footer{border-top:1px solid var(--rule);padding:24px 0 40px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+.lb{position:fixed;inset:0;background:rgba(246,245,241,.97);display:none;align-items:center;justify-content:center;z-index:10;padding:48px 16px}
+.lb.open{display:flex}
+.lb img{max-height:88vh;max-width:100%;object-fit:contain}
+.lb button{position:absolute;background:none;border:0;cursor:pointer;padding:10px 14px;font-size:14px}
+.lb .x{top:10px;right:10px}
+.lb .prev{left:6px;top:50%;transform:translateY(-50%)}
+.lb .next{right:6px;top:50%;transform:translateY(-50%)}
+
+@media (max-width:640px){
+  .map{aspect-ratio:4/5}
+  .hero img{aspect-ratio:4/5}
+}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <strong>Inselwinter</strong>
+    <span class="mono">Lena &amp; Moritz · Winter 26/27</span>
+  </header>
+
+  <div class="intro">
+    <h1>Drei Monate mit dem Van auf den Kanaren.</h1>
+    <div class="status mono"><span class="dot" aria-hidden="true"></span><span id="status"></span></div>
+  </div>
+
+  <figure class="hero" style="margin:0">
+    <img src="img/hero-sprung.jpg" alt="Lena und Moritz springen auf einer Straße durch ein Lavafeld">
+  </figure>
+
+  <section aria-labelledby="h-map">
+    <div class="head">
+      <h2 class="sec" id="h-map">Wo wir gerade sind</h2>
+      <div class="ctrl" role="group" aria-label="Kartenansicht">
+        <button id="b-play" type="button">Route abspielen</button>
+        <button id="b-eu" type="button" aria-pressed="false">Ganze Route</button>
+        <button id="b-can" type="button" aria-pressed="false">Kanaren</button>
+      </div>
+    </div>
+    <div class="map" id="mapbox"><svg id="map" role="img" aria-label="Karte der Reiseroute von Ulm über Cádiz auf die Kanarischen Inseln"></svg></div>
+    <div class="mapfoot mono"><span id="here"></span><span>● Bericht anklicken · durchgezogen: gefahren · gepunktet: geplant</span></div>
+  </section>
+
+  <section aria-labelledby="h-posts">
+    <div class="head"><h2 class="sec" id="h-posts">Reiseberichte</h2></div>
+    <div class="feed" id="feed"></div>
+  </section>
+
+  <footer class="mono">
+    <span>Inselwinter · Lena &amp; Moritz</span>
+    <span>Fotos <a href="https://moritz-reulein.de">moritz-reulein.de</a></span>
+  </footer>
+</div>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Bildansicht">
+  <button class="x" type="button">Schließen</button>
+  <button class="prev" type="button" aria-label="Vorheriges Bild">←</button>
+  <img alt="">
+  <button class="next" type="button" aria-label="Nächstes Bild">→</button>
+</div>
+
+<script src="posts.js"></script>
+<script src="geo.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+(function(){
+  const T = window.TRIP, S = T.stops, P = (window.POSTS||[]).slice();
+  const day = s => new Date(s + "T12:00:00");
+  const today = new Date(); today.setHours(12,0,0,0);
+  const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const short = s => day(s).toLocaleDateString("de-DE",{day:"numeric",month:"numeric"});
+  const long = s => day(s).toLocaleDateString("de-DE",{day:"numeric",month:"long",year:"numeric"});
+
+  // Wo sind wir?
+  const started = today >= day(S[0].date), ended = today > day(T.end);
+  let cur = 0; S.forEach((s,i)=>{ if (today >= day(s.date)) cur = i; });
+  const here = S[cur];
+  const diff = Math.round((day(S[0].date) - today)/864e5);
+  const total = Math.round((day(T.end) - day(S[0].date))/864e5);
+  document.getElementById("status").textContent =
+    !started ? `Noch ${diff} ${diff===1?"Tag":"Tage"} bis zur Abfahrt in Ulm` :
+    ended ? `${total} Tage unterwegs · wieder zuhause` :
+    `Tag ${1-diff} von rund ${total} · gerade in ${here.name}`;
+  const deg = (v,p,n) => `${Math.abs(v).toFixed(2)}° ${v>=0?p:n}`;
+  document.getElementById("here").textContent =
+    `${started?"Aktuell":"Start"}: ${here.name} · ${deg(here.at[1],"N","S")}, ${deg(here.at[0],"O","W")}`;
+
+  // Beiträge, neuester oben
+  P.sort((a,b)=> b.date.localeCompare(a.date));
+  P.forEach((p,i)=>{ p.nr = P.length - i;
+    const s = S.find(s=>s.name===p.place); p.loc = p.at || (s && s.at); });
+  const feed = document.getElementById("feed");
+  // Blöcke: "Text" = Absatz, {h:"…"} = Zwischenüberschrift, {imgs:[…], layout:"lead"|"grid"} = Bilder
+  const gal = (p, imgs, layout, eager) => {
+    const cls = `gallery ${layout||"grid"} n${imgs.length}${imgs.length%2 ? " odd" : ""}`;
+    return `<div class="${cls}">${imgs.map(m=>{ const j = p.all.push(m)-1;
+      return `<button type="button" data-post="${esc(p.id)}" data-i="${j}" aria-label="Bild vergrößern: ${esc(m.alt)}"><img src="${esc(m.src)}" alt="${esc(m.alt)}" loading="${eager&&j<2?"eager":"lazy"}"></button>`; }).join("")}</div>`;
+  };
+  feed.innerHTML = P.map((p,i)=>{
+    p.all = [];
+    const body = p.text.map(b => typeof b === "string" ? `<p>${esc(b)}</p>` :
+      b.h ? `<h4>${esc(b.h)}</h4>` : b.imgs ? gal(p, b.imgs, b.layout, i===0) : "").join("");
+    const tail = (p.images||[]).length ? gal(p, p.images, "lead", i===0) : "";
+    return `<article class="post" id="${esc(p.id)}">
+      <div class="meta mono"><span>Bericht ${p.nr}</span><span>${long(p.date)}</span><span>${esc(p.place)}</span></div>
+      <h3>${esc(p.title)}</h3>
+      <div class="text">${body}</div>
+      ${tail}
+      <button class="copy" type="button" data-id="${esc(p.id)}">Link zu diesem Beitrag kopieren</button>
+    </article>`;
+  }).join("");
+
+  feed.addEventListener("click", async e=>{
+    const b = e.target.closest(".copy"); if(!b) return;
+    const url = location.href.split("#")[0] + "#" + b.dataset.id;
+    try { await navigator.clipboard.writeText(url); b.textContent = "Link kopiert"; }
+    catch(_) { location.hash = b.dataset.id; b.textContent = "Der Link steht jetzt in der Adresszeile"; }
+    setTimeout(()=> b.textContent = "Link zu diesem Beitrag kopieren", 2500);
+  });
+
+  const lb = document.getElementById("lb"), lbImg = lb.querySelector("img");
+  let list=[], idx=0, last=null;
+  const show = ()=>{ lbImg.src = list[idx].src; lbImg.alt = list[idx].alt; };
+  feed.addEventListener("click", e=>{
+    const b = e.target.closest(".gallery button"); if(!b) return;
+    last = b; list = P.find(p=>p.id===b.dataset.post).all; idx = +b.dataset.i;
+    show(); lb.classList.add("open"); lb.querySelector(".x").focus();
+  });
+  const close = ()=>{ lb.classList.remove("open"); last && last.focus(); };
+  const step = d => { idx = (idx+d+list.length)%list.length; show(); };
+  lb.querySelector(".x").onclick = close;
+  lb.querySelector(".prev").onclick = ()=>step(-1);
+  lb.querySelector(".next").onclick = ()=>step(1);
+  lb.addEventListener("click", e=>{ if(e.target===lb) close(); });
+  document.addEventListener("keydown", e=>{
+    if(!lb.classList.contains("open")) return;
+    if(e.key==="Escape") close(); if(e.key==="ArrowLeft") step(-1); if(e.key==="ArrowRight") step(1);
+  });
+  // Standard: oben starten. Nur ein geteilter Direktlink (#bericht) springt zum Bericht.
+  try { history.scrollRestoration = "manual"; } catch(_){}
+  const target = location.hash && document.getElementById(location.hash.slice(1));
+  if (target) target.scrollIntoView(); else window.scrollTo(0,0);
+
+  // ---------- Karte ----------
+  if (!window.d3 || !window.GEO) return;
+  const box = document.getElementById("mapbox"), svg = d3.select("#map");
+  const ref = d3.geoMercator().scale(1).translate([0,0]);
+  const proj = d3.geoMercator(), path = d3.geoPath(proj);
+  const land = [...GEO.eu.features, ...GEO.can.features];
+  const grat = d3.geoGraticule().step([5,5])(), grat1 = d3.geoGraticule().step([1,1])();
+  let W=0, H=0, vEU, vCAN, view;
+
+  // Strecken
+  const legs = S.slice(1).map((s,k)=>{
+    const i = k+1, coords = [S[i-1].at, ...(s.via||[]), s.at];
+    return { i, ferry: !!s.ferry, coords, past: started && i <= cur };
+  });
+  // Abgetastete Gesamtroute für die Animation
+  const samples = [];
+  legs.forEach(l=>{
+    for (let j=0;j<l.coords.length-1;j++){
+      const a=l.coords[j], b=l.coords[j+1], f=d3.geoInterpolate(a,b), n=Math.max(8,Math.round(d3.geoDistance(a,b)*400));
+      for (let t=(samples.length?1:0); t<=n; t++) samples.push({p:f(t/n), leg:l.i});
+    }
+  });
+  let acc=0; samples.forEach((s,k)=>{ if(k) acc += d3.geoDistance(samples[k-1].p, s.p); s.d = acc; });
+  const ferryStart = samples.find(s=>s.leg===3).d, ferryEnd = samples.filter(s=>s.leg===3).pop().d;
+
+  const gG = svg.append("path").attr("class","grat");
+  const rings = [[34,"l"],[32,"s"],[20,"l"],[18,"s"],[9,"l"],[7,"s"]].map(([w,c])=>
+    svg.append("path").attr("class","ring "+c).attr("stroke-width",w));
+  const gL = svg.append("g");
+  const ocean = svg.append("text").attr("class","ocean").text("ATLANTIK");
+  const gR = svg.append("g");
+  const trail = svg.append("path").attr("class","trail");
+  const gS = svg.append("g");
+  const gP = svg.append("g").attr("aria-hidden","true");
+  gP.append("circle").attr("class","pulse").attr("r",5);
+  gP.append("circle").attr("class","pin").attr("r",5);
+  const runner = svg.append("circle").attr("class","pin").attr("r",4).style("display","none");
+  // Kleine Inseln ohne Stopp
+  const minor = [["LA PALMA",[-17.86,28.98]],["LA GOMERA",[-17.23,27.93]],["EL HIERRO",[-18.02,27.58]]];
+  const gM = svg.insert("g", () => gR.node()).attr("aria-hidden","true");
+  gM.selectAll("text").data(minor).join("text").attr("class","isle2").attr("text-anchor","middle").text(d=>d[0]);
+  // Berichte als nummerierte Punkte, mehrere am selben Ort werden aufgefächert
+  const reps = P.filter(p=>p.loc).slice().reverse();
+  const seen = {}; reps.forEach(p=>{ const k=p.loc.join(); p.slot = (seen[k] = (seen[k]||0)+1) - 1; });
+  const gRep = svg.append("g");
+  const repG = gRep.selectAll("g").data(reps).join("g").attr("class","rep")
+    .attr("tabindex",0).attr("role","link").attr("aria-label",p=>`Bericht ${p.nr}: ${p.title}`)
+    .on("click",(e,p)=>goPost(p.id)).on("keydown",(e,p)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goPost(p.id); } });
+  repG.append("title").text(p=>`${p.title} · ${short(p.date)}`);
+  repG.append("circle").attr("r",9);
+  repG.append("text").attr("text-anchor","middle").attr("dy","0.35em").text(p=>p.nr);
+  function goPost(id){
+    const el = document.getElementById(id); if(!el) return;
+    el.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  }
+  // Maßstab und Nordpfeil
+  const sc = svg.append("g").attr("class","scale"), scL = sc.append("line"), scT = sc.append("text");
+  const north = svg.append("text").attr("class","north").attr("text-anchor","middle").text("N ↑");
+
+  gL.selectAll("path").data(land).join("path").attr("class","land");
+  gR.selectAll("path").data(legs).join("path")
+    .attr("class", d=>`leg ${d.past?"past":"future"}${d.ferry?" ferry":""}`);
+  const stopG = gS.selectAll("g").data(S).join("g");
+  stopG.append("circle").attr("class",(d,i)=>`stop ${started&&i<=cur?"":"future"}`).attr("r",3);
+  const lbl = stopG.append("text").attr("class","lbl");
+  lbl.append("tspan").attr("class","n").text(d=>d.name);
+  lbl.append("tspan").attr("class","d").attr("dx",6).text(d=>(d.fix?"":"ca. ")+short(d.date));
+
+  function viewFor(b, pad){
+    const a = ref([b[0][0], b[1][1]]), c = ref([b[1][0], b[0][1]]);
+    return [(a[0]+c[0])/2, (a[1]+c[1])/2, Math.max(c[0]-a[0], (c[1]-a[1])*W/H)*pad];
+  }
+  function apply(v){ const k = W/v[2]; proj.scale(k).translate([W/2 - v[0]*k, H/2 - v[1]*k]); }
+  const isles = new Set(["Teneriffa","Gran Canaria","Fuerteventura","Lanzarote"]);
+  // Beschriftung: Inselnamen nur nah dran, Festland nur in der Übersicht
+  const offs = { "Teneriffa":[-10,-12,"end"], "Gran Canaria":[0,22,"middle"], "Fuerteventura":[10,16,"start"], "Lanzarote":[-10,-6,"end"],
+                 "Ulm":[10,4,"start"], "Euronat":[10,4,"start"], "Cádiz":[-10,4,"end"] };
+
+  function render(v, dot){
+    view = v; apply(v);
+    const near = v[2] < vCAN[2]*2.5;
+    gG.attr("d", path(near ? grat1 : grat));
+    gL.selectAll("path").attr("d", path);
+    const all = land.map(path).join("");
+    rings.forEach(r=>r.attr("d", all));
+    gM.style("display", near ? null : "none").selectAll("text").attr("x",d=>proj(d[1])[0]).attr("y",d=>proj(d[1])[1]);
+    repG.attr("transform", p=>{ const q = proj(p.loc), a = p.slot*1.1 - .8, r = p.slot ? 20 : 0;
+      return `translate(${q[0]+Math.cos(a)*r},${q[1]-Math.sin(a)*r})`; });
+    // Maßstab: runde Distanz, ca. 60–130 px
+    const lat = proj.invert([W/2,H/2])[1], pxkm = proj.scale()/6371/Math.cos(lat*Math.PI/180);
+    const km = [5,10,20,25,50,100,200,250,500].find(k=>k*pxkm>=60) || 500, len = km*pxkm;
+    sc.attr("transform",`translate(16,${H-18})`);
+    scL.attr("x1",0).attr("x2",len).attr("y1",0).attr("y2",0);
+    scT.attr("x",len+8).attr("y",3.5).text(`${km} km`);
+    north.attr("x",W-24).attr("y",24);
+    gR.selectAll("path").attr("d", d=>path({type:"LineString",coordinates:d.coords}));
+    stopG.attr("transform", d=>`translate(${proj(d.at)})`);
+    lbl.attr("x",d=>offs[d.name][0]).attr("y",d=>offs[d.name][1]).attr("text-anchor",d=>offs[d.name][2])
+      .style("display", d=> isles.has(d.name) === near ? null : "none");
+    gP.attr("transform", `translate(${proj(here.at)})`);
+    const o = proj(near ? [-15.2,27.62] : [-15.5,40]); ocean.attr("x",o[0]).attr("y",o[1]).attr("text-anchor","middle");
+    if (dot){
+      runner.style("display",null).attr("transform",`translate(${proj(dot.p)})`);
+      trail.attr("d", path({type:"LineString",coordinates:samples.slice(0,dot.k+1).map(s=>s.p)}));
+    }
+  }
+  const home = () => (started && cur >= 3) ? vCAN : vEU;
+  let mode = (started && cur >= 3) ? "can" : "eu";
+  function setPressed(which){
+    if (which) mode = which;
+    d3.select("#b-eu").attr("aria-pressed", which==="eu");
+    d3.select("#b-can").attr("aria-pressed", which==="can");
+  }
+
+  function size(){
+    W = box.clientWidth; H = box.clientHeight;
+    svg.attr("viewBox",`0 0 ${W} ${H}`);
+    vEU = viewFor([[-18.5,27],[12,49.5]], W<500?1.15:1.08);
+    vCAN = viewFor([[-18.2,27.6],[-13.3,29.3]], W<500?1.15:1.12);
+  }
+  size(); setPressed(mode); render(home());
+
+  let anim = null;
+  function stop(){ if(anim){ anim.stop(); anim=null; } runner.style("display","none"); trail.attr("d",null); }
+  function fly(to, which){
+    stop(); setPressed(which);
+    const from = view, z = d3.interpolateZoom(from, to), dur = Math.max(600, z.duration*0.9);
+    anim = d3.timer(t=>{ const p = d3.easeCubicInOut(Math.min(1,t/dur)); render(z(p)); if(p>=1) stop(); });
+  }
+  function play(){
+    stop(); setPressed(null);
+    const zIn = d3.interpolateZoom(vEU, vCAN), total = samples[samples.length-1].d, dur = 9000;
+    render(vEU);
+    anim = d3.timer(t=>{
+      const p = Math.min(1, t/dur), dist = d3.easeSinInOut(p)*total;
+      let k = samples.findIndex(s=>s.d>=dist); if(k<0) k = samples.length-1;
+      const z = dist<ferryStart ? 0 : dist>ferryEnd ? 1 : d3.easeCubicInOut((dist-ferryStart)/(ferryEnd-ferryStart));
+      render(zIn(z), {p:samples[k].p, k});
+      if (p>=1){
+        anim.stop(); anim=null;
+        setTimeout(()=>{ const h = home(); fly(h, h===vCAN?"can":"eu"); }, 1200);
+      }
+    });
+  }
+  d3.select("#b-play").on("click", play);
+  d3.select("#b-eu").on("click", ()=>fly(vEU,"eu"));
+  d3.select("#b-can").on("click", ()=>fly(vCAN,"can"));
+  new ResizeObserver(()=>{ size(); if(!anim) render(mode==="can"?vCAN:vEU); }).observe(box);
+
+  // Einmal automatisch abspielen, sobald die Karte sichtbar ist
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window){
+    const io = new IntersectionObserver(es=>{ if(es[0].isIntersecting){ io.disconnect(); setTimeout(play, 400); } },{threshold:.6});
+    io.observe(box);
+  }
+})();
+</script>
+</body>
+</html>
