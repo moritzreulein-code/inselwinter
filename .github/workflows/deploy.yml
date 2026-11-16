@@ -1,46 +1,30 @@
-name: Auf Strato veröffentlichen
+name: Seite veröffentlichen
 
 on:
   push:
     branches: [main]
-    paths: ["site/**", ".github/workflows/deploy.yml"]
   workflow_dispatch:
 
-concurrency: deploy
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Prüfen, ob Zugangsdaten hinterlegt sind
-        id: check
-        env:
-          HOST: ${{ secrets.STRATO_HOST }}
-        run: |
-          if [ -z "$HOST" ]; then
-            echo "Noch keine Strato-Zugangsdaten hinterlegt – Upload wird übersprungen."
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: lftp installieren
-        if: steps.check.outputs.ready == 'true'
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
-
-      - name: Seite per SFTP hochladen
-        if: steps.check.outputs.ready == 'true'
-        env:
-          HOST: ${{ secrets.STRATO_HOST }}
-          USER: ${{ secrets.STRATO_USER }}
-          PASS: ${{ secrets.STRATO_PASSWORD }}
-          DIR:  ${{ vars.STRATO_DIR || 'kanaren' }}
-        run: |
-          lftp -u "$USER","$PASS" "sftp://$HOST" -e "
-            set sftp:auto-confirm yes;
-            set net:max-retries 3;
-            mkdir -p -f $DIR;
-            mirror --reverse --only-newer --verbose site/ $DIR/;
-            bye"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
