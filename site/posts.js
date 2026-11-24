@@ -53,6 +53,9 @@ window.POSTS = [
       "Ganz Urlaub ist es nämlich nicht: Lena arbeitet auf den Kanaren zu 80 Prozent, und auch bei Moritz läuft einiges weiter. Wir sind selbst gespannt, wie sich das einpendelt, mit Videocalls am Vormittag und Surfen am Nachmittag, so zumindest der Plan.",
       "Die große Frage ist natürlich das Internet. Auf Fuerteventura und Lanzarote war es bei uns bisher meistens gut. Damit wir aber auch an abgelegenen Plätzen arbeiten können, haben wir ein Reise-Starlink dabei. Wie gut das funktioniert, erzählen wir euch dann von unterwegs.",
 
+      { h: "Besucht uns!" },
+      "Wenn ihr Lust habt, uns auf den Kanaren zu besuchen, freuen wir uns natürlich riesig! Am besten passt es wohl im Februar oder März auf Lanzarote oder Fuerteventura. Zwischen den beiden Inseln braucht die Fähre nur rund 30 Minuten, da sind wir ziemlich flexibel und kommen euch einfach entgegen. Sagt uns rechtzeitig Bescheid, dann planen wir das zusammen.",
+
       { h: "Fragt uns was" },
       "Ihr wollt etwas wissen: zum Van, zur Fähre, zum Arbeiten unterwegs, zu den Inseln oder zu was auch immer? Schreibt uns einfach per WhatsApp. Eure Fragen sammeln wir und beantworten sie in den nächsten Berichten.",
       "Wir freuen uns riesig, dass ihr mitlest. Bis bald, Lena & Moritz"
